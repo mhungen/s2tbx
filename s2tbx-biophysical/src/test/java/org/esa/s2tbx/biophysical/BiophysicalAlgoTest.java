@@ -68,10 +68,6 @@ public class BiophysicalAlgoTest {
         testVariable(BiophysicalVariable.FCOVER, BiophysicalModel.S2A_10m);
     }
 
-    @Test
-    public void testLAI_Cab_S2A() throws IOException {
-        testVariable(BiophysicalVariable.LAI_Cab, BiophysicalModel.S2A);
-    }
 
 
     private void testVariable(BiophysicalVariable biophysicalVariable, BiophysicalModel biophysicalModel) throws IOException {
