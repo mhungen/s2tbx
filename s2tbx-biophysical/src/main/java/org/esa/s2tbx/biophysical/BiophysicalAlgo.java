@@ -7,14 +7,14 @@ import com.bc.jnn.JnnNet;
 import com.bc.jnn.JnnUnit;
 
 
-import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Created by jmalik on 20/06/16.
  */
 public class BiophysicalAlgo {
 
-    private HashMap<Integer, String> definitionGridMap;
+    private HashSet<String> definitionGridSet;
     private int definitionGridSize;
 
     public class Result {
@@ -121,11 +121,11 @@ public class BiophysicalAlgo {
 
     private void createHasSetDefinition()
     {
-        definitionGridMap=null;
+        definitionGridSet =null;
         definitionGridSize=0;
         double [][] definitionDomain = this.auxdata.getCoeffs(BiophysicalAuxdata.BiophysicalVariableCoeffs.DEFINITION_DOMAIN_GRID);
         if (definitionDomain != null) {
-            definitionGridMap = new HashMap<>();
+            definitionGridSet = new HashSet<>(definitionDomain.length);
             definitionGridSize = definitionDomain[0].length;
             for (int row = 0; row < definitionDomain.length; row++) {
                 double [] definitionDomainEntry = definitionDomain[row];
@@ -135,7 +135,7 @@ public class BiophysicalAlgo {
                     definitionDomainEntryInt[i] = (int)definitionDomainEntry[i];
                     domainString+=String.valueOf(definitionDomainEntryInt[i]);
                 }
-                definitionGridMap.put(row, domainString);
+                definitionGridSet.add(domainString);
             }
         }
     }
@@ -164,17 +164,16 @@ public class BiophysicalAlgo {
          * Second check : be sure input is within the approximated convex hull (see ATBD)
          */
 
-        if (bandMinMax != null && definitionGridMap != null) {
-            int [] gridProjection = new int[definitionGridSize];
+        if (bandMinMax != null && definitionGridSet != null) {
             String gridProjString="";
-            for (int i = 0; i < gridProjection.length; i++) {
+            for (int i = 0; i < definitionGridSize; i++) {
                 double bandMin = bandMinMax[0][i];
                 double bandMax = bandMinMax[1][i];
-                gridProjection[i] = (int)Math.floor(10 * (input[i] - bandMin) / (bandMax - bandMin) + 1);
-                gridProjString+=String.valueOf(gridProjection[i]);
+                int gridProjection = (int)Math.floor(10 * (input[i] - bandMin) / (bandMax - bandMin) + 1);
+                gridProjString+=String.valueOf(gridProjection);
             }
             boolean insideDefinitionDomain = false;
-            if(definitionGridMap.containsValue(gridProjString)){
+            if(definitionGridSet.contains(gridProjString)){
                 insideDefinitionDomain = true;
             }
             if (!insideDefinitionDomain) {
