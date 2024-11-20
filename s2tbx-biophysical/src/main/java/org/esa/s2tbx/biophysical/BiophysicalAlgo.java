@@ -7,6 +7,7 @@ import com.bc.jnn.JnnNet;
 import com.bc.jnn.JnnUnit;
 
 
+import java.util.Arrays;
 import java.util.HashSet;
 
 /**
@@ -119,18 +120,6 @@ public class BiophysicalAlgo {
         result.setOutputValue(Double.NaN);
     }
 
-    private static Integer hashDomainGridPoint(double[] domainGridPoint){
-        assert domainGridPoint.length <= 9; // prevent rollover of int32
-        int hashCode = 0;
-        for (int i=(domainGridPoint.length-1); i >= 0; i--){
-            int digit = (int)domainGridPoint[i];
-            assert digit >= 1 && digit <= 10;
-            digit -= 1;
-            hashCode += digit * (int)Math.pow(10, i);
-        }
-        return hashCode;
-    }
-
     private void createHasSetDefinition()
     {
         definitionGridSet=null;
@@ -140,8 +129,10 @@ public class BiophysicalAlgo {
             definitionGridSet = new HashSet<>(definitionDomain.length);
             definitionGridSize = definitionDomain[0].length;
             for (int row = 0; row < definitionDomain.length; row++) {
-                double [] definitionDomainEntry = definitionDomain[row];
-                definitionGridSet.add(hashDomainGridPoint(definitionDomainEntry));
+                int[] definitionDomainEntry = Arrays.stream(definitionDomain[row])
+                        .mapToInt(d -> (int) d)
+                        .toArray();
+                definitionGridSet.add(Arrays.hashCode(definitionDomainEntry));
             }
         }
     }
@@ -174,13 +165,13 @@ public class BiophysicalAlgo {
          */
 
         if (bandMinMax != null && definitionGridSet != null) {
-            double[] inputPointProjection = new double[definitionGridSize];
+            int[] inputPointProjection = new int[definitionGridSize];
             for (int i = 0; i < definitionGridSize; i++) {
                 double bandMin = bandMinMax[0][i];
                 double bandMax = bandMinMax[1][i];
-                inputPointProjection[i] = Math.floor(10 * (input[i] - bandMin) / (bandMax - bandMin) + 1);
+                inputPointProjection[i] = (int)Math.floor(10 * (input[i] - bandMin) / (bandMax - bandMin) + 1);
             }
-            if(!definitionGridSet.contains(hashDomainGridPoint(inputPointProjection))){
+            if(!definitionGridSet.contains(Arrays.hashCode(inputPointProjection))){
                 setInputOutOfRange(result);
             }
         }
