@@ -14,7 +14,7 @@ import java.util.HashSet;
  */
 public class BiophysicalAlgo {
 
-    private HashSet<String> definitionGridSet;
+    private HashSet<Integer> definitionGridSet;
     private int definitionGridSize;
 
     public class Result {
@@ -119,9 +119,21 @@ public class BiophysicalAlgo {
         result.setOutputValue(Double.NaN);
     }
 
+    private static Integer hashDomainGridPoint(double[] domainGridPoint){
+        assert domainGridPoint.length <= 9; // prevent rollover of int32
+        int hashCode = 0;
+        for (int i=(domainGridPoint.length-1); i >= 0; i--){
+            int digit = (int)domainGridPoint[i];
+            assert digit >= 1 && digit <= 10;
+            digit -= 1;
+            hashCode += digit * (int)Math.pow(10, i);
+        }
+        return hashCode;
+    }
+
     private void createHasSetDefinition()
     {
-        definitionGridSet =null;
+        definitionGridSet=null;
         definitionGridSize=0;
         double [][] definitionDomain = this.auxdata.getCoeffs(BiophysicalAuxdata.BiophysicalVariableCoeffs.DEFINITION_DOMAIN_GRID);
         if (definitionDomain != null) {
@@ -129,13 +141,7 @@ public class BiophysicalAlgo {
             definitionGridSize = definitionDomain[0].length;
             for (int row = 0; row < definitionDomain.length; row++) {
                 double [] definitionDomainEntry = definitionDomain[row];
-                int [] definitionDomainEntryInt = new int[definitionDomainEntry.length];
-                String domainString = "";
-                for (int i = 0; i < definitionDomainEntry.length; i++) {
-                    definitionDomainEntryInt[i] = (int)definitionDomainEntry[i];
-                    domainString+=String.valueOf(definitionDomainEntryInt[i]);
-                }
-                definitionGridSet.add(domainString);
+                definitionGridSet.add(hashDomainGridPoint(definitionDomainEntry));
             }
         }
     }
@@ -165,22 +171,15 @@ public class BiophysicalAlgo {
          */
 
         if (bandMinMax != null && definitionGridSet != null) {
-            String gridProjString="";
+            double[] inputPointProjection = new double[definitionGridSize];
             for (int i = 0; i < definitionGridSize; i++) {
                 double bandMin = bandMinMax[0][i];
                 double bandMax = bandMinMax[1][i];
-                int gridProjection = (int)Math.floor(10 * (input[i] - bandMin) / (bandMax - bandMin) + 1);
-                gridProjString+=String.valueOf(gridProjection);
+                inputPointProjection[i] = Math.floor(10 * (input[i] - bandMin) / (bandMax - bandMin) + 1);
             }
-            boolean insideDefinitionDomain = false;
-            if(definitionGridSet.contains(gridProjString)){
-                insideDefinitionDomain = true;
-            }
-            if (!insideDefinitionDomain) {
+            if(!definitionGridSet.contains(hashDomainGridPoint(inputPointProjection))){
                 setInputOutOfRange(result);
-                return;
             }
-
         }
     }
 
