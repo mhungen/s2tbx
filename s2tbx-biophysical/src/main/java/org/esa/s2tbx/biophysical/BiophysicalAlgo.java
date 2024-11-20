@@ -168,6 +168,9 @@ public class BiophysicalAlgo {
 
         /*
          * Second check : be sure input is within the approximated convex hull (see ATBD)
+         * the domain of the convex hull was calculated in advance and
+         * the resulting point cloud is stored in DefinitionDomain_Grid.
+         * it contains ALL valid points and NOT the boundaries of the hull.
          */
 
         if (bandMinMax != null && definitionGridSet != null) {
